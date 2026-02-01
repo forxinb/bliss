@@ -17,6 +17,9 @@ const useGet = require('./use-get/index.js');
 // useAction Hook - Hook generation factory for action-based mutations
 const useAction = require('./use-action/index.js');
 
+// useDynamicSchemaForm Hook - Dynamic schema and form state management
+const useDynamicSchemaForm = require('./use-dynamic-schema-form/index.js');
+
 // ============================================================================
 // useSchema Sub-functions re-export
 // ============================================================================
@@ -28,6 +31,7 @@ module.exports = {
   useSchema,
   useGet,
   useAction,
+  useDynamicSchemaForm,
 
   // useSchema sub-functions
   useSchemaValidations: useSchema.useSchemaValidations,
