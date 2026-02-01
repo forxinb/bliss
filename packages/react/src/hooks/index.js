@@ -5,20 +5,21 @@
 // ============================================================================
 // React Hooks functionality
 
-// useGate Hook - Schema-based form management and API calls
-const useGate = require('./use-gate/index.js');
-
 // useSchema Hook - Schema-based form rendering and validation
 const useSchema = require('./use-schema/index.js');
 
-// useGet Hook - Hook generation factory for HTTP GET requests
-const useGet = require('./use-get/index.js');
-
-// useAction Hook - Hook generation factory for action-based mutations
-const useAction = require('./use-action/index.js');
-
 // useDynamicSchemaForm Hook - Dynamic schema and form state management
 const useDynamicSchemaForm = require('./use-dynamic-schema-form/index.js');
+
+// useGate Hook - API Gateway invocation context management
+const useGate = require('./use-gate/index.js');
+
+// // useGet Hook - Hook generation factory for HTTP GET requests
+// const useGet = require('./use-get/index.js');
+
+// // useAction Hook - Hook generation factory for action-based mutations
+// const useAction = require('./use-action/index.js');
+
 
 // ============================================================================
 // useSchema Sub-functions re-export
@@ -27,11 +28,12 @@ const useDynamicSchemaForm = require('./use-dynamic-schema-form/index.js');
 
 module.exports = {
   // Main Hooks
-  useGate,
   useSchema,
-  useGet,
-  useAction,
   useDynamicSchemaForm,
+  useGate,
+
+  // useGet,
+  // useAction,
 
   // useSchema sub-functions
   useSchemaValidations: useSchema.useSchemaValidations,
@@ -39,10 +41,10 @@ module.exports = {
   setDefaultFormFieldRendererCreator: useSchema.setDefaultFormFieldRendererCreator,
   setDefaultSchemaInputsDebug: useSchema.setDefaultSchemaInputsDebug,
 
-  // useGet sub-functions
-  createUseGet: useGet.createUseGet,
+  // // useGet sub-functions
+  // createUseGet: useGet.createUseGet,
 
-  // useAction sub-functions
-  createUseGateAction: useAction.createUseGateAction,
-  createUseGenericAction: useAction.createUseGenericAction
+  // // useAction sub-functions
+  // createUseGateAction: useAction.createUseGateAction,
+  // createUseGenericAction: useAction.createUseGenericAction
 };
