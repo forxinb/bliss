@@ -1,4 +1,4 @@
-// ristjs-express execute tests
+// @godbliss/express execute tests
 
 const { execute } = require('../execute.js');
 
@@ -14,18 +14,18 @@ describe('execute', () => {
   describe('when handler is not a function', () => {
     test('should pass error to next when string is passed', () => {
       const middleware = execute('not a function');
-      
+
       middleware(mockReq, mockRes, mockNext);
-      
+
       expect(mockNext).toHaveBeenCalledWith(expect.any(Error));
       expect(mockNext.mock.calls[0][0].message).toBe('execute: handler must be a function');
     });
 
     test('should pass error to next when null is passed', () => {
       const middleware = execute(null);
-      
+
       middleware(mockReq, mockRes, mockNext);
-      
+
       expect(mockNext).toHaveBeenCalledWith(expect.any(Error));
     });
   });
@@ -35,11 +35,11 @@ describe('execute', () => {
       const syncHandler = jest.fn((req, res, next) => {
         res.status = 200;
       });
-      
+
       const middleware = execute(syncHandler);
-      
+
       middleware(mockReq, mockRes, mockNext);
-      
+
       expect(syncHandler).toHaveBeenCalledWith(mockReq, mockRes, mockNext);
       expect(mockNext).not.toHaveBeenCalled();
     });
@@ -49,11 +49,11 @@ describe('execute', () => {
       const syncHandler = jest.fn((req, res, next) => {
         throw error;
       });
-      
+
       const middleware = execute(syncHandler);
-      
+
       middleware(mockReq, mockRes, mockNext);
-      
+
       expect(syncHandler).toHaveBeenCalledWith(mockReq, mockRes, mockNext);
       expect(mockNext).toHaveBeenCalledWith(error);
     });
@@ -65,11 +65,11 @@ describe('execute', () => {
         await new Promise(resolve => setTimeout(resolve, 10));
         res.status = 200;
       });
-      
+
       const middleware = execute(asyncHandler);
-      
+
       await middleware(mockReq, mockRes, mockNext);
-      
+
       expect(asyncHandler).toHaveBeenCalledWith(mockReq, mockRes, mockNext);
       expect(mockNext).not.toHaveBeenCalled();
     });
@@ -79,11 +79,11 @@ describe('execute', () => {
       const asyncHandler = jest.fn(async (req, res, next) => {
         throw error;
       });
-      
+
       const middleware = execute(asyncHandler);
-      
+
       await middleware(mockReq, mockRes, mockNext);
-      
+
       expect(asyncHandler).toHaveBeenCalledWith(mockReq, mockRes, mockNext);
       expect(mockNext).toHaveBeenCalledWith(error);
     });
@@ -94,11 +94,11 @@ describe('execute', () => {
       const promiseHandler = jest.fn((req, res, next) => {
         return Promise.resolve('success');
       });
-      
+
       const middleware = execute(promiseHandler);
-      
+
       await middleware(mockReq, mockRes, mockNext);
-      
+
       expect(promiseHandler).toHaveBeenCalledWith(mockReq, mockRes, mockNext);
       expect(mockNext).not.toHaveBeenCalled();
     });
@@ -108,11 +108,11 @@ describe('execute', () => {
       const promiseHandler = jest.fn((req, res, next) => {
         return Promise.reject(error);
       });
-      
+
       const middleware = execute(promiseHandler);
-      
+
       await middleware(mockReq, mockRes, mockNext);
-      
+
       expect(promiseHandler).toHaveBeenCalledWith(mockReq, mockRes, mockNext);
       expect(mockNext).toHaveBeenCalledWith(error);
     });
