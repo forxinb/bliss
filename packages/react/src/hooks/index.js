@@ -14,8 +14,8 @@ const useDynamicSchemaForm = require('./use-dynamic-schema-form/index.js');
 // useGate Hook - API Gateway invocation context management
 const useGate = require('./use-gate/index.js');
 
-// // useGet Hook - Hook generation factory for HTTP GET requests
-// const useGet = require('./use-get/index.js');
+// useGet Hook - Hook generation factory for HTTP GET requests
+const useGet = require('./use-get/index.js');
 
 // // useAction Hook - Hook generation factory for action-based mutations
 // const useAction = require('./use-action/index.js');
@@ -31,8 +31,8 @@ module.exports = {
   useSchema,
   useDynamicSchemaForm,
   useGate,
+  useGet,
 
-  // useGet,
   // useAction,
 
   // useSchema sub-functions
@@ -41,8 +41,8 @@ module.exports = {
   setDefaultFormFieldRendererCreator: useSchema.setDefaultFormFieldRendererCreator,
   setDefaultSchemaInputsDebug: useSchema.setDefaultSchemaInputsDebug,
 
-  // // useGet sub-functions
-  // createUseGet: useGet.createUseGet,
+  // useGet sub-functions
+  createUseGet: useGet.createUseGet,
 
   // // useAction sub-functions
   // createUseGateAction: useAction.createUseGateAction,
