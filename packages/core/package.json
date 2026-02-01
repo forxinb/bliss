@@ -3,16 +3,19 @@
   "version": "0.0.1",
   "description": "Bliss Core - Business Logic Is Simple Script",
   "main": "src/index.js",
+  "exports": {
+    ".": "./src/index.js",
+    "./utils": "./src/utils/index.js"
+  },
   "scripts": {
     "test": "jest",
     "lint": "eslint src/**"
   },
-  "dependencies": {
-    "lodash": "^4.17.21",
-    "simpl-schema": "^3.4.6"
-  },
+  "dependencies": {},
   "peerDependencies": {
-    "bson": ">=4.0.0"
+    "bson": ">=4.0.0",
+    "lodash": ">=4.0.0",
+    "simpl-schema": ">=3.0.0"
   },
   "devDependencies": {
     "bson": "^6.10.4",
