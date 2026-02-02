@@ -17,8 +17,8 @@ const useGate = require('./use-gate/index.js');
 // useGet Hook - Hook generation factory for HTTP GET requests
 const useGet = require('./use-get/index.js');
 
-// // useAction Hook - Hook generation factory for action-based mutations
-// const useAction = require('./use-action/index.js');
+// useAction Hook - Hook generation factory for action-based mutations
+const useAction = require('./use-action/index.js');
 
 
 // ============================================================================
@@ -32,8 +32,7 @@ module.exports = {
   useDynamicSchemaForm,
   useGate,
   useGet,
-
-  // useAction,
+  useAction,
 
   // useSchema sub-functions
   useSchemaValidations: useSchema.useSchemaValidations,
@@ -44,7 +43,7 @@ module.exports = {
   // useGet sub-functions
   createUseGet: useGet.createUseGet,
 
-  // // useAction sub-functions
-  // createUseGateAction: useAction.createUseGateAction,
-  // createUseGenericAction: useAction.createUseGenericAction
+  // useAction sub-functions
+  createUseGateAction: useAction.createUseGateAction,
+  createUseGenericAction: useAction.createUseGenericAction
 };
