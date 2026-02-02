@@ -392,14 +392,24 @@ describe('createUseAction - Error Handling', () => {
       );
 
       await act(async () => {
-        await result.current.start({ onValidationError });
+        await result.current.start({
+          executionParams: { form: { name: 'John' } }, // email missing
+          onValidationError
+        });
       });
 
       // onValidationError callback should be called with validation error
       expect(onValidationError).toHaveBeenCalledTimes(1);
       expect(onValidationError).toHaveBeenCalledWith(
         expect.objectContaining({
-          name: 'ClientError'
+          name: 'ClientError',
+          message: 'Email is required',
+          details: expect.arrayContaining([
+            expect.objectContaining({
+              name: 'email',
+              type: 'required'
+            })
+          ])
         })
       );
       // mockShowAlert should also be called for validation error
@@ -415,11 +425,26 @@ describe('createUseAction - Error Handling', () => {
       );
 
       await act(async () => {
-        await result.current.start({ onValidationError });
+        await result.current.start({
+          executionParams: { form: { name: 'John', email: 'invalid-email' } },
+          onValidationError
+        });
       });
 
-      // onValidationError callback should be called
+      // onValidationError callback should be called with validation error for invalid email format
       expect(onValidationError).toHaveBeenCalledTimes(1);
+      expect(onValidationError).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'ClientError',
+          message: 'Email failed regular expression validation',
+          details: expect.arrayContaining([
+            expect.objectContaining({
+              name: 'email',
+              type: 'regEx'
+            })
+          ])
+        })
+      );
       expect(mockShowAlert).toHaveBeenCalled();
     });
 
@@ -432,11 +457,24 @@ describe('createUseAction - Error Handling', () => {
       );
 
       await act(async () => {
-        await result.current.start({ onValidationError });
+        await result.current.start({
+          executionParams: { form: { title: 'Test Post' } }, // content, authorId missing
+          onValidationError
+        });
       });
 
-      // onValidationError callback should be called
+      // onValidationError callback should be called with validation error for missing required fields
       expect(onValidationError).toHaveBeenCalledTimes(1);
+      expect(onValidationError).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'ClientError',
+          message: 'Content is required', // First missing required field
+          details: expect.arrayContaining([
+            expect.objectContaining({ name: 'content', type: 'required' }),
+            expect.objectContaining({ name: 'authorId', type: 'required' })
+          ])
+        })
+      );
       // Note: createPost doesn't have alertValidationError defined, 
       // so mockShowAlert is not called (validation failure is handled silently)
     });
@@ -453,7 +491,10 @@ describe('createUseAction - Error Handling', () => {
       mockCreateMutationFn.mockClear();
 
       await act(async () => {
-        await result.current.start({ onValidationError });
+        await result.current.start({
+          executionParams: { form: { name: 'John' } }, // email missing
+          onValidationError
+        });
       });
 
       // Mutation function should not be called (validation failed before execution)
