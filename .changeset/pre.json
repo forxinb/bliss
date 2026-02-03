@@ -1,0 +1,12 @@
+{
+  "mode": "pre",
+  "tag": "alpha",
+  "initialVersions": {
+    "@godbliss/core": "0.0.1",
+    "@godbliss/express": "0.0.1",
+    "@godbliss/react": "0.0.1"
+  },
+  "changesets": [
+    "initial-alpha-release"
+  ]
+}
