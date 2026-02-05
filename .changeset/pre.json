@@ -7,6 +7,6 @@
     "@godbliss/react": "0.0.1"
   },
   "changesets": [
-    "initial-alpha-release"
+    "react-export-fix"
   ]
 }
