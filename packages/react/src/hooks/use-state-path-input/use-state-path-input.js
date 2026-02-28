@@ -1,6 +1,6 @@
 const React = require('react');
 const _ = require('lodash');
-const { runInAction } = require('mobx');
+const sap = require('../../utils/set-at-path');
 
 /**
  * useStatePathInput Hook
@@ -35,13 +35,12 @@ const useStatePathInput = (params = {}) => {
   // 3. Keep track of the last value to sync with debounced updates
   const lastTargetValueRef = React.useRef(undefined);
 
-  // 4. Update core logic (wrapped in MobX runInAction)
+  // 4. Update core logic (using sap utility for MobX awareness)
   const executeUpdate = React.useCallback((args) => {
     const newValue = lastTargetValueRef.current;
 
-    runInAction(() => {
-      _.set(_state, _path, newValue);
-    });
+    // sap utility handles MobX action and observability
+    sap(_state, _path, newValue);
 
     if (_.isFunction(onChangeStateAtPath)) {
       onChangeStateAtPath(_state, _path, ...args);

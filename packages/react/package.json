@@ -19,6 +19,11 @@
       "react-native": "./src/hooks/index.js",
       "import": "./lib/module/hooks/index.js",
       "require": "./lib/commonjs/hooks/index.js"
+    },
+    "./utils": {
+      "react-native": "./src/utils/index.js",
+      "import": "./lib/module/utils/index.js",
+      "require": "./lib/commonjs/utils/index.js"
     }
   },
   "scripts": {
