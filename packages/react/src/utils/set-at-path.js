@@ -24,7 +24,11 @@ const sap = action((obj, path, value) => {
   }
 
   // 2. Resolve and validate path
-  // Skip if the path itself or any of its array elements are falsy (except 0)
+  // Skip if the path itself or any of its array elements are falsy (except 0).
+  // Note: Values like -1 are truthy in JS. If provided as a path segment, they are handled by 
+  // the default behavior of _.set (e.g., added as a string property on objects, or a 
+  // custom property on arrays). We intentionally leave this unvalidated to allow for 
+  // flexible, though non-standard, assignment use-cases.
   let isValidPath = true;
 
   const isInvalidPathPart = (p) => !p && p !== 0;
@@ -38,33 +42,22 @@ const sap = action((obj, path, value) => {
   if (paths.length === 0) isValidPath = false;
 
   if (!isValidPath) {
-    console.warn(`[Set At Path] Invalid or empty path provided: ${path}`);
+    if (process.env.NODE_ENV !== 'production') {
+      console.warn(`[Set At Path] Invalid or empty path provided: ${path}`);
+    }
     return;
   }
 
-  // 3. Extract final key to prepare for assignment
-  const lastKey = paths.pop();
+  // 3. Assignment with MobX Awareness
+  // We use _.get to check if the current leaf is an Observable Array.
+  // If it is, we use .replace() to maintain reactivity.
+  // Otherwise, we delegate everything else (including intermediate path creation) to _.set.
+  const currentValue = _.get(obj, path);
 
-  // Navigate to the container of the final key
-  let target = obj;
-  if (paths.length > 0) {
-    target = _.get(obj, paths);
-
-    // Intermediate path safeguard: create {} ONLY if target is truly missing (null or undefined)
-    // This prevents overwriting valid falsy values like 0, false, or ""
-    if (target == null) {
-      _.set(obj, paths, {});
-      target = _.get(obj, paths);
-    }
-  }
-
-  // 4. Final assignment with MobX awareness
-  if (target && isObservableArray(target[lastKey])) {
-    // Observable Array: use .replace() to keep reference and maintain reactivity
-    target[lastKey].replace(value);
-  } else if (target) {
-    // Standard property assignment: triggers MobX observers normally
-    target[lastKey] = value;
+  if (isObservableArray(currentValue) && _.isArray(value)) {
+    currentValue.replace(value);
+  } else {
+    _.set(obj, path, value);
   }
 });
 
