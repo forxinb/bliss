@@ -16,7 +16,12 @@ const { action, isObservableArray } = require('mobx');
  * @param {*} value - The value to set
  */
 const setAtPath = action((obj, path, value) => {
-  if (obj == null) return;
+  if (obj == null) {
+    if (process.env.NODE_ENV !== 'production') {
+      console.warn(`[Bliss:setAtPath] Target object is null or undefined. Cannot set path: "${path}"`);
+    }
+    return;
+  }
 
   // 1. Path type check: strictly handles single string paths only.
   if (typeof path !== 'string') {
@@ -39,6 +44,7 @@ const setAtPath = action((obj, path, value) => {
   }
 
   // 3. Assignment with MobX Awareness
+  // We use _.get to check if the current leaf is an Observable Array.
   const currentValue = _.get(obj, path);
 
   if (isObservableArray(currentValue) && _.isArray(value)) {
@@ -58,7 +64,12 @@ const setAtPath = action((obj, path, value) => {
  * @param {Object} patch - A plain object representing nested updates
  */
 const patchObj = action((obj, patch) => {
-  if (obj == null || !_.isPlainObject(patch)) return;
+  if (obj == null || !_.isPlainObject(patch)) {
+    if (process.env.NODE_ENV !== 'production') {
+      console.warn(`[Bliss:patchObj] Invalid arguments. 'obj' must be defined and 'patch' must be a plain object.`);
+    }
+    return;
+  }
 
   const traverse = (currentObj, currentPath = []) => {
     _.each(currentObj, (value, key) => {
@@ -81,5 +92,5 @@ module.exports = {
   setAtPath,
   patchObj,
   sap: setAtPath, // Keep sap as an alias for brevity if preferred
-  patchForm: patchObj // Keep patchForm as an alias for brevity if preferred
+  patchForm: patchObj // Semantic alias for context-appropriate form updates
 };
