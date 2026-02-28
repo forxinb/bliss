@@ -39,7 +39,7 @@ const useStatePathInput = (params = {}) => {
   const lastTargetValueRef = React.useRef(undefined);
 
   // 4. Update core logic (using sap utility for MobX awareness)
-  const executeUpdate = React.useCallback((args) => {
+  const executeUpdate = React.useCallback((...args) => {
     const newValue = lastTargetValueRef.current;
 
     // sap utility handles MobX action and observability
@@ -53,12 +53,21 @@ const useStatePathInput = (params = {}) => {
   // 5. Stable debounce function
   const debouncedUpdate = React.useMemo(() => {
     if (debounce >= 0) {
-      return _.debounce(executeUpdate, debounce);
+      return _.debounce((...args) => executeUpdate(...args), debounce);
     }
     return null;
   }, [executeUpdate, debounce]);
 
-  // 6. Main handler for input change events
+  // 6. Clean up pending debounce on unmount or when debouncedUpdate changes
+  React.useEffect(() => {
+    return () => {
+      if (debouncedUpdate && debouncedUpdate.cancel) {
+        debouncedUpdate.cancel();
+      }
+    };
+  }, [debouncedUpdate]);
+
+  // 7. Main handler for input change events
   const onChangeValue = React.useCallback((...args) => {
     const newValue = getValueToSet(...args);
     lastTargetValueRef.current = newValue;
@@ -71,11 +80,11 @@ const useStatePathInput = (params = {}) => {
     });
 
     if (debouncedUpdate) {
-      debouncedUpdate(args);
+      debouncedUpdate(...args);
     } else {
-      executeUpdate(args);
+      executeUpdate(...args);
     }
-  }, [getValueToSap, debouncedUpdate, executeUpdate]);
+  }, [getValueToSet, debouncedUpdate, executeUpdate]);
 
   return {
     value: currentValue,
