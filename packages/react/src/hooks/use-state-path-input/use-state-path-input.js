@@ -1,6 +1,9 @@
 const React = require('react');
 const _ = require('lodash');
-const sap = require('../../utils/set-at-path');
+const { sap } = require('../../utils');
+
+const DEFAULT_GET_VALUE_TO_SET = (e) => _.get(e, 'target.value', undefined);
+
 
 /**
  * useStatePathInput Hook
@@ -11,7 +14,7 @@ const sap = require('../../utils/set-at-path');
  * @param {Object} params - Hook parameters
  * @param {Object|Function} params.state - State object or function returning state
  * @param {string|Function} params.path - Path in state or function returning path
- * @param {Function} params.getValueToSap - Function to extract value from event (default: e.target.value)
+ * @param {Function} params.getValueToSet - Function to extract value from event (default: e.target.value)
  * @param {number} params.debounce - Debounce time in ms (-1 to disable)
  * @param {Function} params.onChangeStateAtPath - Callback after state is updated
  * @returns {Object} { value, onChangeValue }
@@ -20,7 +23,7 @@ const useStatePathInput = (params = {}) => {
   const {
     state = {},
     path = '',
-    getValueToSap = (e) => (e && e.target ? e.target.value : e),
+    getValueToSet = DEFAULT_GET_VALUE_TO_SET,
     debounce = -1,
     onChangeStateAtPath,
   } = params;
@@ -57,7 +60,7 @@ const useStatePathInput = (params = {}) => {
 
   // 6. Main handler for input change events
   const onChangeValue = React.useCallback((...args) => {
-    const newValue = getValueToSap(...args);
+    const newValue = getValueToSet(...args);
     lastTargetValueRef.current = newValue;
 
     // React Synthetic Event persistency for async updates

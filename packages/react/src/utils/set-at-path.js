@@ -71,6 +71,19 @@ const patchObj = action((obj, patch) => {
     return;
   }
 
+  // NOTE: Arrays are treated as leaf values and replaced as a whole.
+  // FUTURE: If we ever need per-item patching (users.0.name), we must redesign traversal.
+  // - Currently, patchObj treats arrays as leaf values and always replaces them as a whole:
+  //   patchObj(form, { users: [...] }) -> form.users = [...]
+  // - This is simple and works well for "array as a value" fields,
+  //   but does not support deep patching into array items (e.g., users.0.name).
+  //
+  // IF we ever need "patchObj" to support per-item updates like:
+  //   patchObj(form, { users: { 0: { name: 'foo' } } })
+  // THEN we must:
+  //   - Redesign the traversal logic to descend into arrays, and
+  //   - Carefully review existing call sites that rely on whole-array replacement semantics.
+
   const traverse = (currentObj, currentPath = []) => {
     _.each(currentObj, (value, key) => {
       const fullPath = [...currentPath, key];
