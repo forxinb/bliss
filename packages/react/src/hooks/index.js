@@ -20,6 +20,9 @@ const useGet = require('./use-get/index.js');
 // useAction Hook - Hook generation factory for action-based mutations
 const useAction = require('./use-action/index.js');
 
+// useStatePathInput Hook - Binds state at path to input
+const useStatePathInput = require('./use-state-path-input/index.js');
+
 
 // ============================================================================
 // useSchema Sub-functions re-export
@@ -33,6 +36,7 @@ module.exports = {
   useGate,
   useGet,
   useAction,
+  useStatePathInput,
 
   // useSchema sub-functions
   useSchemaValidations: useSchema.useSchemaValidations,
