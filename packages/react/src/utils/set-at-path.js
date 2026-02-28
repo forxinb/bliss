@@ -15,18 +15,34 @@ const { action, isObservableArray } = require('mobx');
  * @param {Object} obj - The target object/observable state
  * @param {string|Object} path - Dot-notation path (e.g., 'user.profile.name') or a map for batch update
  * @param {*} value - The value to set (ignored if path is a map)
- * @returns {*} The result of the assignment
  */
 const sap = action((obj, path, value) => {
   // 1. Batch Merge: Handle map-style updates (e.g., sap(state, { a: 1, b: 2 }))
   if (_.isPlainObject(path)) {
-    return _.merge(obj, path);
+    _.merge(obj, path);
+    return;
   }
 
-  if (typeof path !== 'string') return undefined;
+  // 2. Resolve and validate path
+  // Skip if the path itself or any of its array elements are falsy (except 0)
+  let isValidPath = true;
 
-  // 2. Resolve path components
-  const paths = _.toPath(path); // Safely handles 'a.b.c' or 'a[0].b'
+  const isInvalidPathPart = (p) => !p && p !== 0;
+  if (_.isArray(path)) {
+    isValidPath = !_.some(path, isInvalidPathPart);
+  } else if (isInvalidPathPart(path)) {
+    isValidPath = false;
+  }
+
+  const paths = _.toPath(path); // Safely handles 'a.b.c', 'a[0].b', numbers, etc.
+  if (paths.length === 0) isValidPath = false;
+
+  if (!isValidPath) {
+    console.warn(`[Set At Path] Invalid or empty path provided: ${path}`);
+    return;
+  }
+
+  // 3. Extract final key to prepare for assignment
   const lastKey = paths.pop();
 
   // Navigate to the container of the final key
@@ -34,26 +50,22 @@ const sap = action((obj, path, value) => {
   if (paths.length > 0) {
     target = _.get(obj, paths);
 
-    // Intermediate path safeguard: create {} if not present
-    if (!target) {
+    // Intermediate path safeguard: create {} ONLY if target is truly missing (null or undefined)
+    // This prevents overwriting valid falsy values like 0, false, or ""
+    if (target == null) {
       _.set(obj, paths, {});
       target = _.get(obj, paths);
     }
   }
 
-  // 3. Final assignment with MobX awareness
-  let result;
+  // 4. Final assignment with MobX awareness
   if (target && isObservableArray(target[lastKey])) {
     // Observable Array: use .replace() to keep reference and maintain reactivity
-    // This allows subscribers to remain bound to the same array instance
-    result = target[lastKey].replace(value);
+    target[lastKey].replace(value);
   } else if (target) {
     // Standard property assignment: triggers MobX observers normally
     target[lastKey] = value;
-    result = value;
   }
-
-  return result;
 });
 
 module.exports = sap;
