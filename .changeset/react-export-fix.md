@@ -1,5 +1,5 @@
 ---
-"@godbliss/react": patch
+"@godbliss/react": minor
 ---
 
-Export all hooks in the entry point.
+Refactor useStatePathInput hook for better safety and reliability, and add comprehensive test suites.
