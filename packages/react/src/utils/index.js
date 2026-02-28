@@ -1,13 +1,15 @@
-// @godbliss/react utilities exports
+/**
+ * React Utility Module
+ * ============================================================================
+ * Internal utilities for the @godbliss/react package.
+ * ============================================================================
+ */
 
-// ============================================================================
-// Utility Exports
-// ============================================================================
-
-// sap (Set At Path) - Sets a value at a specific path while maintaining MobX reactivity
-const sap = require('./set-at-path');
+const { setAtPath, patchObj, sap, patchForm } = require('./set-at-path');
 
 module.exports = {
+  setAtPath,
   sap,
-  setAtPath: sap
+  patchObj,
+  patchForm
 };
