@@ -2,11 +2,9 @@
   "mode": "pre",
   "tag": "alpha",
   "initialVersions": {
-    "@godbliss/core": "0.0.1",
-    "@godbliss/express": "0.0.1",
-    "@godbliss/react": "0.0.1"
+    "@godbliss/core": "0.1.0",
+    "@godbliss/express": "0.1.0",
+    "@godbliss/react": "0.1.0"
   },
-  "changesets": [
-    "react-export-fix"
-  ]
+  "changesets": []
 }
