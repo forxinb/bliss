@@ -157,6 +157,78 @@ describe('dataFetch', () => {
     });
   });
 
+  describe('Content-Type resolution', () => {
+    test('should resolve content-type using Headers.get() if available', async () => {
+      const mockResponse = {
+        ok: true,
+        headers: {
+          get: jest.fn().mockReturnValue('application/json'),
+          map: { 'content-type': 'wrong/type' }
+        },
+        json: jest.fn().mockResolvedValue({ data: 'ok' })
+      };
+      fetch.mockResolvedValue(mockResponse);
+
+      const result = await dataFetch('https://api.example.com/test');
+      expect(mockResponse.headers.get).toHaveBeenCalledWith('content-type');
+      expect(result.data).toEqual({ data: 'ok' });
+    });
+
+    test('should fallback to headers.map.content-type', async () => {
+      const mockResponse = {
+        ok: true,
+        headers: {
+          map: { 'content-type': 'application/json' }
+        },
+        json: jest.fn().mockResolvedValue({ data: 'ok' })
+      };
+      fetch.mockResolvedValue(mockResponse);
+
+      const result = await dataFetch('https://api.example.com/test');
+      expect(result.data).toEqual({ data: 'ok' });
+    });
+
+    test('should fallback to headers.map.Content-Type (case sensitive key)', async () => {
+      const mockResponse = {
+        ok: true,
+        headers: {
+          map: { 'Content-Type': 'application/json' }
+        },
+        json: jest.fn().mockResolvedValue({ data: 'ok' })
+      };
+      fetch.mockResolvedValue(mockResponse);
+
+      const result = await dataFetch('https://api.example.com/test');
+      expect(result.data).toEqual({ data: 'ok' });
+    });
+
+    test('should handle uppercase content-type values', async () => {
+      const mockResponse = {
+        ok: true,
+        headers: {
+          map: { 'content-type': 'APPLICATION/JSON' }
+        },
+        json: jest.fn().mockResolvedValue({ data: 'ok' })
+      };
+      fetch.mockResolvedValue(mockResponse);
+
+      const result = await dataFetch('https://api.example.com/test');
+      expect(result.data).toEqual({ data: 'ok' });
+    });
+
+    test('should handle missing headers gracefully', async () => {
+      const mockResponse = {
+        ok: true,
+        headers: {},
+        json: jest.fn().mockResolvedValue({ data: 'ok' })
+      };
+      fetch.mockResolvedValue(mockResponse);
+
+      const result = await dataFetch('https://api.example.com/test');
+      expect(result.data).toEqual({}); // Should hit 'else' and return empty data
+    });
+  });
+
   describe('Network errors', () => {
     test('should handle fetch network errors', async () => {
       const networkError = new Error('Network error');

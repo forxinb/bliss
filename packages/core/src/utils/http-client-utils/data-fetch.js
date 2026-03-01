@@ -85,7 +85,12 @@ const dataFetch = (url, options = {}) => {
   return new Promise((resolve, reject) => {
     fetch(url, fetchOptions)
       .then((response) => {
-        const contentType = _.get(response, 'headers.map.content-type', '');
+        const contentType = (
+          (typeof response.headers?.get === 'function' ? response.headers.get('content-type') : null) ||
+          _.get(response, 'headers.map.content-type') ||
+          _.get(response, 'headers.map.Content-Type') ||
+          ''
+        ).toLowerCase();
         if (contentType.includes('json')) {
           handleJson({ response, resolve, reject, successMapper, errorMapper });
         } else if (contentType.includes('bson')) {
