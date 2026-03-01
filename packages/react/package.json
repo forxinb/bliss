@@ -1,6 +1,6 @@
 {
   "name": "@godbliss/react",
-  "version": "0.0.3-alpha.1",
+  "version": "0.0.3-alpha.2",
   "description": "React components and hooks for Bliss framework",
   "main": "lib/commonjs/index.js",
   "module": "lib/module/index.js",

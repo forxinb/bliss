@@ -1,6 +1,6 @@
 {
   "name": "@godbliss/express",
-  "version": "0.0.3-alpha.1",
+  "version": "0.0.3-alpha.2",
   "description": "Bliss Express middleware and utilities",
   "main": "src/index.js",
   "exports": {

@@ -6,5 +6,7 @@
     "@godbliss/express": "0.1.0",
     "@godbliss/react": "0.1.0"
   },
-  "changesets": []
+  "changesets": [
+    "core-data-fetch-header-fix"
+  ]
 }

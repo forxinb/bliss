@@ -1,5 +1,12 @@
 # @godbliss/express
 
+## 0.0.3-alpha.2
+
+### Patch Changes
+
+- Updated dependencies
+  - @godbliss/core@0.0.3-alpha.2
+
 ## 0.1.0
 
 ### Patch Changes
