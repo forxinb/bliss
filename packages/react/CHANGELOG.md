@@ -1,5 +1,13 @@
 # @godbliss/react
 
+## 0.0.3-alpha.3
+
+### Patch Changes
+
+- Add 'placeholder' option to SimpleSchema and enhance 'findDocs' to support disabling pagination with null.
+- Updated dependencies
+  - @godbliss/core@0.0.3-alpha.3
+
 ## 0.0.3-alpha.2
 
 ### Patch Changes

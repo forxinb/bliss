@@ -1,6 +1,6 @@
 {
   "name": "@godbliss/core",
-  "version": "0.0.3-alpha.2",
+  "version": "0.0.3-alpha.3",
   "description": "Bliss Core - Business Logic Is Simple Script",
   "main": "src/index.js",
   "exports": {

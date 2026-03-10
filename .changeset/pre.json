@@ -7,6 +7,6 @@
     "@godbliss/react": "0.1.0"
   },
   "changesets": [
-    "core-data-fetch-header-fix"
+    "add-placeholder-and-enhance-finddocs"
   ]
 }
