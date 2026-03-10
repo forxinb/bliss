@@ -51,6 +51,7 @@ const createFormFieldRenderers = (schemaInstance, formState, createFormFieldRend
     const schemaLabel = schemaInstance.getDefinition(key)?.label;
     const schemaHelp = schemaInstance.getDefinition(key)?.help;
     const schemaRemark = schemaInstance.getDefinition(key)?.remark;
+    const schemaPlaceholder = schemaInstance.getDefinition(key)?.placeholder;
 
     const path = parentKey ? `${parentKey}.${key}` : key;
     if (SimpleSchema.isSimpleSchema(type)) {
@@ -69,6 +70,7 @@ const createFormFieldRenderers = (schemaInstance, formState, createFormFieldRend
         schemaLabel: schemaLabel,
         schemaHelp: schemaHelp,
         schemaRemark: schemaRemark,
+        schemaPlaceholder: schemaPlaceholder,
         getValidationErrors: () => holder.validationErrors
       });
     }
