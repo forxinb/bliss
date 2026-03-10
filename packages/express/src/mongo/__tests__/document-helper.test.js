@@ -140,6 +140,24 @@ describe('Database API', () => {
       
       expect(result.data).toHaveLength(0);
     });
+
+    test('should fetch all documents when pagination is null', async () => {
+      // 15 users were inserted in beforeEach
+      const result = await docHelper.findDocs('users', 'all', {}, null);
+      
+      expect(result.data).toHaveLength(15);
+      expect(result.pageInfo).toBeNull();
+    });
+
+    test('should handle null or undefined options safely', async () => {
+      // Testing with null options
+      const resultNull = await docHelper.findDocs('users', 'all', null, { pageSize: 5 });
+      expect(resultNull.data).toHaveLength(5);
+      
+      // Testing with undefined options (implicit)
+      const resultUndef = await docHelper.findDocs('users', 'all', undefined, { pageSize: 5 });
+      expect(resultUndef.data).toHaveLength(5);
+    });
   });
 
   describe('increase/decrease', () => {
