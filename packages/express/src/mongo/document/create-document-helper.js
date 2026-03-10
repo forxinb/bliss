@@ -37,14 +37,18 @@ function createDocumentHelper({ Collections } = {}) {
   }
 
   /**
-   * Find documents in a collection with pagination support
+   * Find documents in a collection with optional pagination support
    * @param {string} collectionName - Name of the collection
    * @param {Object|string} [selector={}] - MongoDB selector or 'all' for full collection query
-   * @param {Object} [options={}] - Query options (sort, projection, etc.)
-   * @param {Object} [pagination={}] - Pagination options (page, pageSize, after, before)
+   * @param {Object} [options] - Query options (sort, projection, etc.). Safely handles null/undefined.
+   * @param {Object|null} [pagination={}] - Pagination options (page, pageSize, after, before). 
+   *                                        Pass null to disable pagination and fetch all.
    * @example
-   * // Full collection query
+   * // Full collection query (Default pagination: page 1, size 10)
    * findDocs('users', 'all')
+   * 
+   * // Fetch ALL documents without pagination
+   * findDocs('users', 'all', {}, null)
    * 
    * // Security: Empty selector will return no results (prevents accidental full collection scan)
    * findDocs('users', {})  // Returns no results
@@ -60,12 +64,20 @@ function createDocumentHelper({ Collections } = {}) {
    * 
    * // Cursor pagination
    * findDocs('users', 'all', {}, { after: 'cursor123', pageSize: 10 })
-   * @returns {Promise<Object>} Paginated result with data and pageInfo
+   * @returns {Promise<Object>} { data: Array, pageInfo: Object|null } 
+   *                            pageInfo is null if pagination was disabled.
    */
-  async function findDocs(collectionName, selector, options = {}, pagination = {}) {
+  async function findDocs(collectionName, selector, options, pagination = {}) {
     const col = getCollection(collectionName);
-    const query = getSafeSelector(selector);    
-    return await executePagination(col, query, options, pagination);
+    const query = getSafeSelector(selector);
+    const _options = _.isEmpty(options) ? {} : options;
+
+    if (pagination === null) {
+      const docs = await col.find(query, _options).toArray();
+      return { data: docs, pageInfo: null };
+    }
+
+    return await executePagination(col, query, _options, pagination);
   }
 
   /**
