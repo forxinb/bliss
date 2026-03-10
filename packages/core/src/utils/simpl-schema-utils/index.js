@@ -40,7 +40,7 @@ try {
 
 // Set SimpleSchema extension options (Required)
 if (SimpleSchema && typeof SimpleSchema.extendOptions === 'function') {
-  SimpleSchema.extendOptions(['readOnly', 'help', 'remark', 'input', 'initialValue']);
+  SimpleSchema.extendOptions(['readOnly', 'placeholder', 'help', 'remark', 'input', 'initialValue']);
 } else {
   console.error('SimpleSchema.extendOptions is not available. Custom schema options will not work.');
   console.error('This utility requires simpl-schema with extendOptions support.');
