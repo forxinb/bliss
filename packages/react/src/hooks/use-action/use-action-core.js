@@ -471,7 +471,7 @@ const useActionCore = (preprocessed, options, execution) => {
 
     // Concurrency control scenario 3: error in action
     concurrencyControl.stopAll();
-  }, [makeCallbackParams, alertActionError, onBeforeGoOnError, mappedHooksResult.navigation, resolveDefField, concurrencyControl.stopAll]);
+  }, [makeCallbackParams, alertActionError, onBeforeGoOnError, mappedHooksResult.navigation, resolveDefField, concurrencyControl.stopAll, verbose, actionKey]);
 
   return {
     // Action execution

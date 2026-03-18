@@ -628,8 +628,7 @@ describe('createUseAction - Error Handling', () => {
       // Concurrency control check
       expect(result.current.isRunning).toBe(true);  // First start() is still running
       expect(consoleWarnSpy).toHaveBeenCalledWith(
-        'start already executing...; new start request ignored',
-        'createUser'
+        '[Bliss:Action:createUser] start already executing...; new start request ignored'
       );
 
       consoleWarnSpy.mockRestore();

@@ -52,14 +52,14 @@ const testSchema = makeSchema({
 
 // Action definitions for error handling strategy tests
 const errorHandlingActionDefs = {
-  // For 'quiet' strategy test
+  // For 'quiet' strategy test (Implicit quiet now)
   'quietErrorAction': {
     schema: testSchema,
     execute: jest.fn(async () => {
       throw new Error('Execution failed');
     }),
-    alertError: 'quiet',
-    alertValidationError: 'quiet' // Handle validation error quietly
+    alertError: null,
+    alertValidationError: null
   },
 
   // For Object strategy test
@@ -74,7 +74,7 @@ const errorHandlingActionDefs = {
       closeText: 'Close',
       onClose: jest.fn()
     },
-    alertValidationError: 'quiet' // Handle validation error quietly
+    alertValidationError: null
   },
 
   // For falsy strategy test (default)
@@ -83,8 +83,7 @@ const errorHandlingActionDefs = {
     execute: jest.fn(async () => {
       throw new Error('Execution failed');
     }),
-    alertValidationError: 'quiet' // Handle validation error quietly
-    // No alertError (falsy)
+    alertError: null
   },
 
   // For Validation Error test
@@ -93,7 +92,7 @@ const errorHandlingActionDefs = {
     execute: jest.fn(async () => {
       return { success: true };
     }),
-    alertValidationError: 'quiet'
+    alertValidationError: null
   },
 
   'objectValidationErrorAction': {
@@ -117,8 +116,7 @@ const errorHandlingActionDefs = {
     check: jest.fn(async () => {
       throw new Error('Check failed');
     }),
-    alertCheckError: 'quiet',
-    alertValidationError: 'quiet' // Handle validation error quietly
+    alertCheckError: null
   },
 
   'objectCheckErrorAction': {
@@ -133,8 +131,7 @@ const errorHandlingActionDefs = {
       title: 'Check Failed',
       message: 'Please try again',
       closeText: 'Retry'
-    },
-    alertValidationError: 'quiet' // Handle validation error quietly
+    }
   }
 };
 
@@ -163,11 +160,12 @@ describe('createUseGenericAction - Error Handling Strategies', () => {
   });
 
   describe('Execution Error Handling Strategies', () => {
-    test('should handle error quietly when alertError is "quiet"', async () => {
+    test('should handle error quietly when verbose is false and no alert defined', async () => {
       const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation();
+      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
 
       const { result } = renderHook(
-        () => useGenericAction('quietErrorAction'),
+        () => useGenericAction('quietErrorAction', { verbose: false }),
         { wrapper: ({ children }) => <TestWrapper queryClient={queryClient}>{children}</TestWrapper> }
       );
 
@@ -180,9 +178,36 @@ describe('createUseGenericAction - Error Handling Strategies', () => {
         });
       });
 
-      // Error should be handled quietly (no console warning)
+      // Error should be handled quietly (no console warning/error)
       expect(consoleWarnSpy).not.toHaveBeenCalled();
+      expect(consoleErrorSpy).not.toHaveBeenCalled();
       expect(mockShowAlert).not.toHaveBeenCalled();
+
+      consoleWarnSpy.mockRestore();
+      consoleErrorSpy.mockRestore();
+    });
+
+    test('should log warning when verbose is true and no alert defined', async () => {
+      const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation();
+
+      const { result } = renderHook(
+        () => useGenericAction('quietErrorAction', { verbose: true }),
+        { wrapper: ({ children }) => <TestWrapper queryClient={queryClient}>{children}</TestWrapper> }
+      );
+
+      await act(async () => {
+        await result.current.start({
+          executionParams: {
+            form: { name: 'John', email: 'john@example.com' },
+            schema: testSchema
+          }
+        });
+      });
+
+      // Should log warning about missing alert definition
+      expect(consoleWarnSpy).toHaveBeenCalledWith(
+        expect.stringContaining("[Bliss:Action:quietErrorAction] execution failed, but no UI alert (actionDef.alertError) was defined"),
+      );
 
       consoleWarnSpy.mockRestore();
     });
@@ -212,11 +237,11 @@ describe('createUseGenericAction - Error Handling Strategies', () => {
       );
     });
 
-    test('should use default handling when alertError is falsy', async () => {
+    test('should log error details when verbose is true and alertError is falsy', async () => {
       const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation();
 
       const { result } = renderHook(
-        () => useGenericAction('falsyErrorAction'),
+        () => useGenericAction('falsyErrorAction', { verbose: true }),
         { wrapper: ({ children }) => <TestWrapper queryClient={queryClient}>{children}</TestWrapper> }
       );
 
@@ -229,13 +254,9 @@ describe('createUseGenericAction - Error Handling Strategies', () => {
         });
       });
 
-      // Default handling: console warning then stop silently
+      // New verbose console output format
       expect(consoleWarnSpy).toHaveBeenCalledWith(
-        'execution failed for action \'falsyErrorAction\':',
-        expect.any(Error)
-      );
-      expect(consoleWarnSpy).toHaveBeenCalledWith(
-        'actionDef.alertError is not provided for \'falsyErrorAction\', so execution failure is handled silently.'
+        expect.stringContaining("[Bliss:Action:falsyErrorAction] execution failed, but no UI alert (actionDef.alertError) was defined"),
       );
 
       consoleWarnSpy.mockRestore();
@@ -243,11 +264,11 @@ describe('createUseGenericAction - Error Handling Strategies', () => {
   });
 
   describe('Validation Error Handling Strategies', () => {
-    test('should handle validation error quietly when alertValidationError is "quiet"', async () => {
+    test('should handle validation error quietly when verbose is false', async () => {
       const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation();
 
       const { result } = renderHook(
-        () => useGenericAction('quietValidationErrorAction'),
+        () => useGenericAction('quietValidationErrorAction', { verbose: false }),
         { wrapper: ({ children }) => <TestWrapper queryClient={queryClient}>{children}</TestWrapper> }
       );
 
@@ -319,11 +340,11 @@ describe('createUseGenericAction - Error Handling Strategies', () => {
   });
 
   describe('Check Error Handling Strategies', () => {
-    test('should handle check error quietly when alertCheckError is "quiet"', async () => {
+    test('should handle check error quietly when verbose is false', async () => {
       const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation();
 
       const { result } = renderHook(
-        () => useGenericAction('quietCheckErrorAction'),
+        () => useGenericAction('quietCheckErrorAction', { verbose: false }),
         { wrapper: ({ children }) => <TestWrapper queryClient={queryClient}>{children}</TestWrapper> }
       );
 
@@ -397,9 +418,9 @@ describe('createUseGenericAction - Error Handling Strategies', () => {
     test('should handle multiple error types with different strategies', async () => {
       const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation();
 
-      // 1. Execution Error with 'quiet'
+      // 1. Execution Error (Quiet with verbose: false)
       const quietResult = renderHook(
-        () => useGenericAction('quietErrorAction'),
+        () => useGenericAction('quietErrorAction', { verbose: false }),
         { wrapper: ({ children }) => <TestWrapper queryClient={queryClient}>{children}</TestWrapper> }
       );
 
@@ -412,9 +433,9 @@ describe('createUseGenericAction - Error Handling Strategies', () => {
         });
       });
 
-      // 2. Validation Error with 'quiet'
+      // 2. Validation Error (Quiet with verbose: false)
       const validationResult = renderHook(
-        () => useGenericAction('quietValidationErrorAction'),
+        () => useGenericAction('quietValidationErrorAction', { verbose: false }),
         { wrapper: ({ children }) => <TestWrapper queryClient={queryClient}>{children}</TestWrapper> }
       );
 
@@ -444,7 +465,7 @@ describe('createUseGenericAction - Error Handling Strategies', () => {
 
       // Verify each strategy worked correctly
       expect(mockShowAlert).toHaveBeenCalledTimes(1); // Only Object strategy shows alert
-      expect(consoleWarnSpy).not.toHaveBeenCalled(); // quiet strategy has no console warning
+      expect(consoleWarnSpy).not.toHaveBeenCalled(); // quiet because verbose: false
 
       consoleWarnSpy.mockRestore();
     });

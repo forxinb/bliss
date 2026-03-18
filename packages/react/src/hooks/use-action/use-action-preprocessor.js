@@ -76,10 +76,10 @@ const useActionPreprocessor = (actionKey, resolvedConfig, actionOptions = {}) =>
     navigationHookArguments,
     navigationVersionSelector,
     mapHooksResult,
-    verbose: fallbackVerbose,
     // UI adapters (fallback values)
     showAlert: fallbackShowAlert,
     showConfirm: fallbackShowConfirm,
+    verbose: fallbackVerbose,
   } = resolvedConfig;
 
   // ==========================================================================
@@ -127,6 +127,7 @@ const useActionPreprocessor = (actionKey, resolvedConfig, actionOptions = {}) =>
 
   const showAlert = actionOptions.showAlert || fallbackShowAlert;
   const showConfirm = actionOptions.showConfirm || fallbackShowConfirm;
+  const verbose = typeof actionOptions.verbose !== 'undefined' ? actionOptions.verbose : fallbackVerbose;
 
   // ==========================================================================
   // Return Preprocessed Results
@@ -152,9 +153,10 @@ const useActionPreprocessor = (actionKey, resolvedConfig, actionOptions = {}) =>
     // Mapped hook result (format to pass to callbacks)
     mappedHooksResult,
 
-    // UI adapters (resolved values)
+    // Resolved values
     showAlert,
     showConfirm,
+    verbose,
   };
 };
 
