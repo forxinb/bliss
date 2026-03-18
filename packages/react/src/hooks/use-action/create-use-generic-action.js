@@ -82,6 +82,9 @@ const createUseGenericAction = (config) => {
       showAlert: overrideShowAlert,
       showConfirm: overrideShowConfirm,
 
+      // Development options
+      verbose,
+
       // Other options (passed to useActionCore)
       ...otherOptions
     } = options;
@@ -91,7 +94,7 @@ const createUseGenericAction = (config) => {
     // ==========================================================================
 
     const preprocessed = useActionPreprocessor(actionKey, resolvedConfig, {
-      showAlert: overrideShowAlert, showConfirm: overrideShowConfirm,
+      showAlert: overrideShowAlert, showConfirm: overrideShowConfirm, verbose,
     });
 
     // ==========================================================================

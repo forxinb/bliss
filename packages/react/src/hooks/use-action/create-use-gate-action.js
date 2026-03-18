@@ -106,6 +106,9 @@ const createUseGateAction = (config) => {
       showAlert: overrideShowAlert,
       showConfirm: overrideShowConfirm,
 
+      // Development options
+      verbose,
+
       // Other options (passed to useActionCore)
       ...otherOptions
     } = options;
@@ -115,7 +118,7 @@ const createUseGateAction = (config) => {
     // ==========================================================================
 
     const preprocessed = useActionPreprocessor(actionKey, resolvedConfig, {
-      showAlert: overrideShowAlert, showConfirm: overrideShowConfirm,
+      showAlert: overrideShowAlert, showConfirm: overrideShowConfirm, verbose,
     });
 
     // ==========================================================================

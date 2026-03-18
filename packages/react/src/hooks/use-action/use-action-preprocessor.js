@@ -52,6 +52,7 @@ const { safeSpreadArguments } = require('@godbliss/core/utils');
  * @returns {*} returns.translationVersion - Translation version
  * @returns {*} returns.navigationVersion - Navigation version
  * @returns {Object} returns.mappedHooksResult - Mapped hook results
+ * @returns {boolean} returns.verbose - Configured verbose flag
  * @returns {Function} returns.showAlert - Resolved alert function
  * @returns {Function} returns.showConfirm - Resolved confirm function
  */
@@ -75,6 +76,7 @@ const useActionPreprocessor = (actionKey, resolvedConfig, actionOptions = {}) =>
     navigationHookArguments,
     navigationVersionSelector,
     mapHooksResult,
+    verbose: fallbackVerbose,
     // UI adapters (fallback values)
     showAlert: fallbackShowAlert,
     showConfirm: fallbackShowConfirm,

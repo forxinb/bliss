@@ -47,6 +47,7 @@ const useActionCore = (preprocessed, options, execution) => {
     appContextVersion,
     showAlert,
     showConfirm,
+    verbose,
   } = preprocessed;
 
   // Destructure options
@@ -174,14 +175,7 @@ const useActionCore = (preprocessed, options, execution) => {
 
     const resolved = resolveDefField(fieldName, makeCallbackParams({ errorType, error }));
 
-    // 1. 'quiet': Stop silently without warning (useful for expected failures)
-    // No user notification, just stop the action execution
-    if (resolved === 'quiet') {
-      concurrencyControl.stopAll();
-      return;
-    }
-
-    // 2. Object: Show alert with resolved configuration from actionDef
+    // Object: Show alert with resolved configuration from actionDef
     // actionDef provides custom title, message, etc.
     if (resolved && typeof resolved === 'object') {
       const defaultOnClose = () => concurrencyControl.stopAll();
@@ -190,12 +184,16 @@ const useActionCore = (preprocessed, options, execution) => {
       return;
     }
 
-    // 3. falsy: Default handling (console warn and stop)
-    // Fallback when actionDef field is not provided - log warning and stop execution
-    console.warn(`${errorType} failed for action '${actionKey}':`, error);
-    console.warn(`actionDef.${fieldName} is not provided for '${actionKey}', so ${errorType.toLowerCase()} failure is handled silently.`);
+    // Default handling (no alert defined): 
+    // If verbose is on, log the detailed error in the group. 
+    // Use console.warn for transparency during development when no alert is provided.
+    if (verbose) {
+      console.warn(`[Bliss:Action:${actionKey}] ${errorType} failed, but no UI alert (actionDef.${fieldName}) was defined. Silent stop for user.`);
+      console.error(error);
+    }
+    
     concurrencyControl.stopAll();
-  }, [resolveDefField, makeCallbackParams, showAlertWithDefField, concurrencyControl.stopAll, actionKey]);
+  }, [resolveDefField, makeCallbackParams, showAlertWithDefField, concurrencyControl.stopAll, actionKey, verbose]);
 
 
   // Form validation function
@@ -234,19 +232,20 @@ const useActionCore = (preprocessed, options, execution) => {
         try {
           onBeforeExecute && onBeforeExecute(makeCallbackParams());
         } catch (callbackError) {
-          console.warn('onBeforeExecute error:', callbackError);
+          if (verbose) console.warn(`[Bliss:Action:${actionKey}] onBeforeExecute error:`, callbackError);
           throw callbackError;
         }
 
         // Execute actual action based on execution strategy (mutation or customAction)
-        // Note: If you need auth, navigation contexts, pass them directly via executionParams at runtime
-        // - execute receives executionParams containing form, schema, and other parameters
-        // - executionOptions are passed as second parameter for additional execution configuration
-        // - Example: start({ executionParams: { customAuthToken: token }, executionOptions: { onSuccess: (data) => console.log(data) } })
-        // - When schema is not provided, form validation is the developer's responsibility
+        if (verbose) {
+          console.groupCollapsed(`%c[Bliss:Action:${actionKey}] %cEXECUTE_ACTUAL`, 'color: #2196F3; font-weight: bold', 'color: inherit');
+          console.log('Execution Params:', executionParams);
+          console.log('Execution Options:', executionOptions);
+          console.groupEnd();
+        }
         execute(executionParams, executionOptions);
       } else {
-        console.warn('action already running...; new action request has ignored');
+        if (verbose) console.warn(`[Bliss:Action:${actionKey}] action already running...; new action request ignored`);
       }
     };
 
@@ -277,8 +276,15 @@ const useActionCore = (preprocessed, options, execution) => {
   const start = React.useCallback((startOptions = {}) => {
     // Prevent duplicate button clicks
     if (!concurrencyControl.checkAndStartRunning()) {
-      console.warn('start already executing...; new start request ignored', actionKey);
+      if (verbose) console.warn(`[Bliss:Action:${actionKey}] start already executing...; new start request ignored`);
       return;
+    }
+
+    if (verbose) {
+      console.groupCollapsed(`%c[Bliss:Action:${actionKey}] %cSTART`, 'color: #4CAF50; font-weight: bold', 'color: inherit');
+      console.log('Start Options:', startOptions);
+      console.log('Context:', makeCallbackParams());
+      console.groupEnd();
     }
 
     try {
@@ -319,7 +325,13 @@ const useActionCore = (preprocessed, options, execution) => {
       // 1. Form validation (using schema provided by execution)
       if (executionParams.schema) {
         try {
+          if (verbose) {
+            console.groupCollapsed(`%c[Bliss:Action:${actionKey}] %cVALIDATION_START`, 'color: #FF9800; font-weight: bold', 'color: inherit');
+            console.log('Form data:', executionParams.form);
+            console.groupEnd();
+          }
           executionParams.schema.validate(executionParams.form);
+          if (verbose) console.log(`%c[Bliss:Action:${actionKey}] %cVALIDATION_OK`, 'color: #4CAF50; font-weight: bold', 'color: inherit');
         } catch (validationError) {
           showValidationError(validationError);
           return;
@@ -338,6 +350,11 @@ const useActionCore = (preprocessed, options, execution) => {
       // 2. Execute check (business logic check with validated form)
       if (actionDef.check) {
         try {
+          if (verbose) {
+            console.groupCollapsed(`%c[Bliss:Action:${actionKey}] %cCHECK_START`, 'color: #FF9800; font-weight: bold', 'color: inherit');
+            console.log('Check Parameters:', checkParams);
+            console.groupEnd();
+          }
           checkResult = actionDef.check(
             makeCallbackParams({ ...checkParams })
           );
@@ -379,7 +396,11 @@ const useActionCore = (preprocessed, options, execution) => {
 
   // Success handler
   const onSuccess = React.useCallback((data) => {
-    console.log('actionCore onSuccess', data);
+    if (verbose) {
+      console.groupCollapsed(`%c[Bliss:Action:${actionKey}] %cSUCCESS`, 'color: #4CAF50; font-weight: bold', 'color: inherit');
+      console.log('Response data:', data);
+      console.groupEnd();
+    }
 
     // Success alert
     const alertSuccessDefField = resolveDefField('alertSuccess', makeCallbackParams({ data }));
@@ -399,7 +420,7 @@ const useActionCore = (preprocessed, options, execution) => {
     try {
       onBeforeGoOnSuccess && onBeforeGoOnSuccess(makeCallbackParams({ data }));
     } catch (callbackError) {
-      console.warn('onBeforeGoOnSuccess error:', callbackError);
+      if (verbose) console.warn(`[Bliss:Action:${actionKey}] onBeforeGoOnSuccess error:`, callbackError);
       throw callbackError;
     }
 
@@ -420,7 +441,11 @@ const useActionCore = (preprocessed, options, execution) => {
 
   // Error handler
   const onError = React.useCallback((error) => {
-    console.log('actionCore onError', error);
+    if (verbose) {
+      console.groupCollapsed(`%c[Bliss:Action:${actionKey}] %cERROR`, 'color: #F44336; font-weight: bold', 'color: inherit');
+      console.error('Error detail:', error);
+      console.groupEnd();
+    }
 
     // Error alert using unified error handling
     alertActionError('execution', error, 'Error', 'Execution failed');
@@ -429,7 +454,7 @@ const useActionCore = (preprocessed, options, execution) => {
     try {
       onBeforeGoOnError && onBeforeGoOnError(makeCallbackParams({ error }));
     } catch (callbackError) {
-      console.warn('onBeforeGoOnError error:', callbackError);
+      if (verbose) console.warn(`[Bliss:Action:${actionKey}] onBeforeGoOnError error:`, callbackError);
       throw callbackError;
     }
 

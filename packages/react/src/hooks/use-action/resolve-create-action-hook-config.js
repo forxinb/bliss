@@ -33,6 +33,23 @@ const DEFAULT_MAP_HOOKS_RESULT = (hooksResult) => ({
   navigation: hooksResult.navigation,
 });
 
+/**
+ * Detect development environment (cross-platform support)
+ * 1. React Native: global __DEV__
+ * 2. Web/Node: process.env.NODE_ENV
+ */
+const IS_DEVELOPMENT = (() => {
+  try {
+    if (typeof __DEV__ !== 'undefined') return __DEV__ === true;
+    if (typeof process !== 'undefined' && process.env) {
+      return process.env.NODE_ENV !== 'production';
+    }
+  } catch (e) {
+    // Fallback safe value for pure browser environments without process
+  }
+  return false;
+})();
+
 
 /**
  * Utility function to resolve action hook creation configuration
@@ -43,6 +60,7 @@ const DEFAULT_MAP_HOOKS_RESULT = (hooksResult) => ({
  * 
  * @param {Object} config - Original configuration object
  * @param {Object} config.actionDefs - Action definition collection (key: action key, value: ActionDef)
+ * @param {boolean} [config.verbose] - Enable/disable detailed logging (default: true in development)
  * @param {Function} [config.showAlert] - Alert display function (externally injected)
  * @param {Function} [config.showConfirm] - Confirmation dialog display function (externally injected)
  * @param {Function} [config.authHook] - Authentication hook (externally injected)
@@ -106,6 +124,9 @@ const resolveCreateActionHookConfig = (config) => {
     // Hook result mapping
     mapHooksResult = DEFAULT_MAP_HOOKS_RESULT,
 
+    // Development options
+    verbose = IS_DEVELOPMENT,
+
   } = config;
 
   // ==========================================================================
@@ -123,6 +144,9 @@ const resolveCreateActionHookConfig = (config) => {
   return {
     // Action definitions
     actionDefs,
+
+    // Development options
+    verbose,
 
     // UI functions
     showAlert,

@@ -41,7 +41,6 @@ const useConcurrencyControl = () => {
   const checkAndStartRunning = React.useCallback(() => {
     const canStart = !holder.isRunning;
     if (!canStart) {
-      console.warn('Cannot start, ignoring start request: already running');
       return false;
     }
     holder.isRunning = true;  // Update ref first (synchronous)
@@ -52,7 +51,6 @@ const useConcurrencyControl = () => {
   const checkAndStartExecuting = React.useCallback(() => {
     const canExecute = holder.isRunning && !holder.isExecuting;
     if (!canExecute) {
-      console.warn('Cannot execute, ignoring execution request: not running or already executing');
       return false;
     }
     holder.isExecuting = true;  // Update ref first (synchronous)
