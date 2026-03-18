@@ -71,6 +71,18 @@ const useActionCore = (preprocessed, options, execution) => {
   // Concurrency control state management
   const concurrencyControl = useConcurrencyControl();
 
+  // Ref to track verbose mode for the current execution (supports call-level override)
+  // [Detailed Explanation: 3-level Verbose Configuration Hierarchy]
+  // 1. Factory/Global: Initial setting during createUseActionHook stage (auto-determined by DEV mode).
+  // 2. Hook-level: Options provided when calling useAction hook (overwrites factory settings).
+  // 3. Call-level (start): Arguments passed to action.start() which have the highest priority for the specific execution.
+  // activeVerboseRef maintains the effective "Active" configuration from start through async callbacks (onSuccess/onError).
+  const activeVerboseRef = React.useRef(verbose);
+  // Keep ref in sync with hook-level verbose when it changes
+  React.useEffect(() => {
+    activeVerboseRef.current = verbose;
+  }, [verbose]);
+
   // ============================================================================
   // Utility Functions (Common/Helper)
   // ============================================================================
@@ -187,13 +199,13 @@ const useActionCore = (preprocessed, options, execution) => {
     // Default handling (no alert defined): 
     // If verbose is on, log the detailed error in the group. 
     // Use console.warn for transparency during development when no alert is provided.
-    if (verbose) {
+    if (activeVerboseRef.current) {
       console.warn(`[Bliss:Action:${actionKey}] ${errorType} failed, but no UI alert (actionDef.${fieldName}) was defined. Silent stop for user.`);
       console.error(error);
     }
     
     concurrencyControl.stopAll();
-  }, [resolveDefField, makeCallbackParams, showAlertWithDefField, concurrencyControl.stopAll, actionKey, verbose]);
+  }, [resolveDefField, makeCallbackParams, showAlertWithDefField, concurrencyControl.stopAll, actionKey]);
 
 
   // Form validation function
@@ -232,12 +244,12 @@ const useActionCore = (preprocessed, options, execution) => {
         try {
           onBeforeExecute && onBeforeExecute(makeCallbackParams());
         } catch (callbackError) {
-          if (verbose) console.warn(`[Bliss:Action:${actionKey}] onBeforeExecute error:`, callbackError);
+          if (activeVerboseRef.current) console.warn(`[Bliss:Action:${actionKey}] onBeforeExecute error:`, callbackError);
           throw callbackError;
         }
 
         // Execute actual action based on execution strategy (mutation or customAction)
-        if (verbose) {
+        if (activeVerboseRef.current) {
           console.groupCollapsed(`%c[Bliss:Action:${actionKey}] %cEXECUTE_ACTUAL`, 'color: #2196F3; font-weight: bold', 'color: inherit');
           console.log('Execution Params:', executionParams);
           console.log('Execution Options:', executionOptions);
@@ -245,7 +257,7 @@ const useActionCore = (preprocessed, options, execution) => {
         }
         execute(executionParams, executionOptions);
       } else {
-        if (verbose) console.warn(`[Bliss:Action:${actionKey}] action already running...; new action request ignored`);
+        if (activeVerboseRef.current) console.warn(`[Bliss:Action:${actionKey}] action already running...; new action request ignored`);
       }
     };
 
@@ -274,13 +286,22 @@ const useActionCore = (preprocessed, options, execution) => {
   //    - Success: call confirmAction (confirmation dialog or immediate execution)
   //    - Failure: show error with showCheckError
   const start = React.useCallback((startOptions = {}) => {
+    const {
+      verbose: startVerbose,
+      ...otherStartOptions
+    } = startOptions;
+
+    // Resolve active verbose (call-level > hook-level)
+    const activeVerbose = typeof startVerbose !== 'undefined' ? startVerbose : verbose;
+    activeVerboseRef.current = activeVerbose;
+
     // Prevent duplicate button clicks
     if (!concurrencyControl.checkAndStartRunning()) {
-      if (verbose) console.warn(`[Bliss:Action:${actionKey}] start already executing...; new start request ignored`);
+      if (activeVerbose) console.warn(`[Bliss:Action:${actionKey}] start already executing...; new start request ignored`);
       return;
     }
 
-    if (verbose) {
+    if (activeVerbose) {
       console.groupCollapsed(`%c[Bliss:Action:${actionKey}] %cSTART`, 'color: #4CAF50; font-weight: bold', 'color: inherit');
       console.log('Start Options:', startOptions);
       console.log('Context:', makeCallbackParams());
@@ -294,7 +315,7 @@ const useActionCore = (preprocessed, options, execution) => {
         executionOptions = {},
         onCheckError,
         onValidationError
-      } = startOptions;
+      } = otherStartOptions;
 
       // Extract form, schema, and other execution parameters from startExecutionParams
       const {
@@ -325,13 +346,13 @@ const useActionCore = (preprocessed, options, execution) => {
       // 1. Form validation (using schema provided by execution)
       if (executionParams.schema) {
         try {
-          if (verbose) {
+          if (activeVerbose) {
             console.groupCollapsed(`%c[Bliss:Action:${actionKey}] %cVALIDATION_START`, 'color: #FF9800; font-weight: bold', 'color: inherit');
             console.log('Form data:', executionParams.form);
             console.groupEnd();
           }
           executionParams.schema.validate(executionParams.form);
-          if (verbose) console.log(`%c[Bliss:Action:${actionKey}] %cVALIDATION_OK`, 'color: #4CAF50; font-weight: bold', 'color: inherit');
+          if (activeVerbose) console.log(`%c[Bliss:Action:${actionKey}] %cVALIDATION_OK`, 'color: #4CAF50; font-weight: bold', 'color: inherit');
         } catch (validationError) {
           showValidationError(validationError);
           return;
@@ -350,7 +371,7 @@ const useActionCore = (preprocessed, options, execution) => {
       // 2. Execute check (business logic check with validated form)
       if (actionDef.check) {
         try {
-          if (verbose) {
+          if (activeVerbose) {
             console.groupCollapsed(`%c[Bliss:Action:${actionKey}] %cCHECK_START`, 'color: #FF9800; font-weight: bold', 'color: inherit');
             console.log('Check Parameters:', checkParams);
             console.groupEnd();
@@ -387,7 +408,7 @@ const useActionCore = (preprocessed, options, execution) => {
       console.error('Unexpected error in start process:', error);
       throw error;
     }
-  }, [actionKey, schema, form, makeCallbackParams, confirmAction, alertActionError, concurrencyControl.checkAndStartRunning, concurrencyControl.stopAll]);
+  }, [actionKey, schema, form, makeCallbackParams, confirmAction, alertActionError, concurrencyControl.checkAndStartRunning, concurrencyControl.stopAll, verbose]);
 
 
   // ============================================================================
@@ -396,7 +417,7 @@ const useActionCore = (preprocessed, options, execution) => {
 
   // Success handler
   const onSuccess = React.useCallback((data) => {
-    if (verbose) {
+    if (activeVerboseRef.current) {
       console.groupCollapsed(`%c[Bliss:Action:${actionKey}] %cSUCCESS`, 'color: #4CAF50; font-weight: bold', 'color: inherit');
       console.log('Response data:', data);
       console.groupEnd();
@@ -420,7 +441,7 @@ const useActionCore = (preprocessed, options, execution) => {
     try {
       onBeforeGoOnSuccess && onBeforeGoOnSuccess(makeCallbackParams({ data }));
     } catch (callbackError) {
-      if (verbose) console.warn(`[Bliss:Action:${actionKey}] onBeforeGoOnSuccess error:`, callbackError);
+      if (activeVerboseRef.current) console.warn(`[Bliss:Action:${actionKey}] onBeforeGoOnSuccess error:`, callbackError);
       throw callbackError;
     }
 
@@ -437,11 +458,11 @@ const useActionCore = (preprocessed, options, execution) => {
 
     // Concurrency control scenario 1: normal completion
     concurrencyControl.stopAll();
-  }, [makeCallbackParams, showAlertWithDefField, actionDef, queryClient, onBeforeGoOnSuccess, concurrencyControl.stopAll]);
+  }, [makeCallbackParams, showAlertWithDefField, actionDef, queryClient, onBeforeGoOnSuccess, concurrencyControl.stopAll, actionKey, mappedHooksResult.navigation, resolveDefField]);
 
   // Error handler
   const onError = React.useCallback((error) => {
-    if (verbose) {
+    if (activeVerboseRef.current) {
       console.groupCollapsed(`%c[Bliss:Action:${actionKey}] %cERROR`, 'color: #F44336; font-weight: bold', 'color: inherit');
       console.error('Error detail:', error);
       console.groupEnd();
@@ -454,7 +475,7 @@ const useActionCore = (preprocessed, options, execution) => {
     try {
       onBeforeGoOnError && onBeforeGoOnError(makeCallbackParams({ error }));
     } catch (callbackError) {
-      if (verbose) console.warn(`[Bliss:Action:${actionKey}] onBeforeGoOnError error:`, callbackError);
+      if (activeVerboseRef.current) console.warn(`[Bliss:Action:${actionKey}] onBeforeGoOnError error:`, callbackError);
       throw callbackError;
     }
 
@@ -471,7 +492,7 @@ const useActionCore = (preprocessed, options, execution) => {
 
     // Concurrency control scenario 3: error in action
     concurrencyControl.stopAll();
-  }, [makeCallbackParams, alertActionError, onBeforeGoOnError, mappedHooksResult.navigation, resolveDefField, concurrencyControl.stopAll, verbose, actionKey]);
+  }, [makeCallbackParams, alertActionError, onBeforeGoOnError, mappedHooksResult.navigation, resolveDefField, concurrencyControl.stopAll, actionKey]);
 
   return {
     // Action execution

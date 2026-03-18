@@ -119,6 +119,33 @@ const errorHandlingActionDefs = {
       message: 'Please try again',
       closeText: 'Retry'
     }
+  },
+
+  // --- Identity Test Variations ---
+  'undefinedErrorAction': {
+    gating: { path: '/users/', method: 'POST' },
+    execute: jest.fn(async () => { throw new Error('FAIL'); }),
+    // alertError omitted
+  },
+  'nullErrorAction': {
+    gating: { path: '/users/', method: 'POST' },
+    execute: jest.fn(async () => { throw new Error('FAIL'); }),
+    alertError: null
+  },
+  'falseErrorAction': {
+    gating: { path: '/users/', method: 'POST' },
+    execute: jest.fn(async () => { throw new Error('FAIL'); }),
+    alertError: false
+  },
+  'stringErrorAction': {
+    gating: { path: '/users/', method: 'POST' },
+    execute: jest.fn(async () => { throw new Error('FAIL'); }),
+    alertError: 'This string is not an object, so it will be ignored'
+  },
+  'emptyStringErrorAction': {
+    gating: { path: '/users/', method: 'POST' },
+    execute: jest.fn(async () => { throw new Error('FAIL'); }),
+    alertError: ''
   }
 };
 
@@ -260,6 +287,56 @@ describe('createUseGateAction - Error Handling Strategies', () => {
       );
 
       consoleWarnSpy.mockRestore();
+    });
+
+    describe('Identity of Unsupported Alert Values', () => {
+      test.each([
+        ['undefinedErrorAction', 'undefined (implicit)'],
+        ['nullErrorAction', 'null (explicit)'],
+        ['falseErrorAction', 'false (explicit)'],
+        ['stringErrorAction', 'non-empty string'],
+        ['emptyStringErrorAction', 'empty string'],
+      ])('should behave identically when alertError is %s (%s)', async (actionKey) => {
+        const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation();
+        const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+
+        // 1. Verify quiet behavior with verbose: false
+        const quietHook = renderHook(
+          () => useAction(actionKey, { 
+            verbose: false, 
+            makeGateContext: () => ({ initialForm: { name: 'John', email: 'john@example.com' } }) 
+          }),
+          { wrapper: ({ children }) => <TestWrapper queryClient={queryClient}>{children}</TestWrapper> }
+        );
+
+        await act(async () => {
+          await quietHook.result.current.start();
+        });
+
+        expect(mockShowAlert).not.toHaveBeenCalled();
+        expect(consoleWarnSpy).not.toHaveBeenCalled();
+
+        // 2. Verify logging behavior with verbose: true
+        const verboseHook = renderHook(
+          () => useAction(actionKey, { 
+            verbose: true, 
+            makeGateContext: () => ({ initialForm: { name: 'John', email: 'john@example.com' } }) 
+          }),
+          { wrapper: ({ children }) => <TestWrapper queryClient={queryClient}>{children}</TestWrapper> }
+        );
+
+        await act(async () => {
+          await verboseHook.result.current.start();
+        });
+
+        // Current implementation logs error message even if truthy string is provided (because it's not an object)
+        expect(consoleWarnSpy).toHaveBeenCalledWith(
+          expect.stringContaining(`[Bliss:Action:${actionKey}] execution failed, but no UI alert (actionDef.alertError) was defined`),
+        );
+
+        consoleWarnSpy.mockRestore();
+        consoleErrorSpy.mockRestore();
+      });
     });
   });
 

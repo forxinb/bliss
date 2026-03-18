@@ -132,6 +132,33 @@ const errorHandlingActionDefs = {
       message: 'Please try again',
       closeText: 'Retry'
     }
+  },
+
+  // --- Identity Test Variations ---
+  'undefinedErrorAction': {
+    schema: testSchema,
+    execute: jest.fn(async () => { throw new Error('FAIL'); }),
+    // alertError omitted
+  },
+  'nullErrorAction': {
+    schema: testSchema,
+    execute: jest.fn(async () => { throw new Error('FAIL'); }),
+    alertError: null
+  },
+  'falseErrorAction': {
+    schema: testSchema,
+    execute: jest.fn(async () => { throw new Error('FAIL'); }),
+    alertError: false
+  },
+  'stringErrorAction': {
+    schema: testSchema,
+    execute: jest.fn(async () => { throw new Error('FAIL'); }),
+    alertError: 'Just a string message'
+  },
+  'emptyStringErrorAction': {
+    schema: testSchema,
+    execute: jest.fn(async () => { throw new Error('FAIL'); }),
+    alertError: ''
   }
 };
 
@@ -260,6 +287,53 @@ describe('createUseGenericAction - Error Handling Strategies', () => {
       );
 
       consoleWarnSpy.mockRestore();
+    });
+
+    describe('Identity of Unsupported Alert Values', () => {
+      test.each([
+        ['undefinedErrorAction', 'undefined (implicit)'],
+        ['nullErrorAction', 'null (explicit)'],
+        ['falseErrorAction', 'false (explicit)'],
+        ['stringErrorAction', 'non-empty string'],
+        ['emptyStringErrorAction', 'empty string'],
+      ])('should behave identically when alertError is %s (%s)', async (actionKey) => {
+        const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation();
+        const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+
+        // 1. Verify quiet behavior with verbose: false
+        const quietHook = renderHook(
+          () => useGenericAction(actionKey, { verbose: false }),
+          { wrapper: ({ children }) => <TestWrapper queryClient={queryClient}>{children}</TestWrapper> }
+        );
+
+        await act(async () => {
+          await quietHook.result.current.start({
+            executionParams: { form: { name: 'J', email: 'j@e.com' }, schema: testSchema }
+          });
+        });
+
+        expect(mockShowAlert).not.toHaveBeenCalled();
+        expect(consoleWarnSpy).not.toHaveBeenCalled();
+
+        // 2. Verify logging behavior with verbose: true
+        const verboseHook = renderHook(
+          () => useGenericAction(actionKey, { verbose: true }),
+          { wrapper: ({ children }) => <TestWrapper queryClient={queryClient}>{children}</TestWrapper> }
+        );
+
+        await act(async () => {
+          await verboseHook.result.current.start({
+            executionParams: { form: { name: 'J', email: 'j@e.com' }, schema: testSchema }
+          });
+        });
+
+        expect(consoleWarnSpy).toHaveBeenCalledWith(
+          expect.stringContaining(`[Bliss:Action:${actionKey}] execution failed, but no UI alert (actionDef.alertError) was defined`),
+        );
+
+        consoleWarnSpy.mockRestore();
+        consoleErrorSpy.mockRestore();
+      });
     });
   });
 
