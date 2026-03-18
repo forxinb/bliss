@@ -31,7 +31,7 @@ const userActionDefs = {
       title: 'Input Error',
       message: 'Please check the required fields.'
     },
-    goOnSuccess: 'back',
+    goOnSuccess: ({ navigation }) => navigation.goBack(),
     invalidateQueriesOnSuccess: { queryKey: ['users'] }
   },
   updateUser: {
@@ -44,7 +44,7 @@ const userActionDefs = {
       title: 'Update Complete',
       message: 'User has been updated.'
     },
-    goOnSuccess: 'back',
+    goOnSuccess: ({ navigation }) => navigation.goBack(),
     invalidateQueriesOnSuccess: { queryKey: ['users'] }
   },
   deleteUser: {
@@ -59,7 +59,7 @@ const userActionDefs = {
       title: 'Delete Complete',
       message: 'User has been deleted.'
     },
-    goOnSuccess: 'back',
+    goOnSuccess: ({ navigation }) => navigation.goBack(),
     invalidateQueriesOnSuccess: { queryKey: ['users'] }
   }
 };
@@ -75,7 +75,7 @@ const postActionDefs = {
       title: 'Creation Complete',
       message: 'Post has been created.'
     },
-    goOnSuccess: 'back',
+    goOnSuccess: ({ navigation }) => navigation.goBack(),
     invalidateQueriesOnSuccess: { queryKey: ['posts'] }
   },
   updatePost: {
@@ -88,7 +88,7 @@ const postActionDefs = {
       title: 'Update Complete',
       message: 'Post has been updated.'
     },
-    goOnSuccess: 'back',
+    goOnSuccess: ({ navigation }) => navigation.goBack(),
     invalidateQueriesOnSuccess: { queryKey: ['posts'] }
   },
   deletePost: {
@@ -103,7 +103,7 @@ const postActionDefs = {
       title: 'Delete Complete',
       message: 'Post has been deleted.'
     },
-    goOnSuccess: 'back',
+    goOnSuccess: ({ navigation }) => navigation.goBack(),
     invalidateQueriesOnSuccess: { queryKey: ['posts'] }
   },
   publishPost: {
@@ -116,7 +116,7 @@ const postActionDefs = {
       title: 'Publish Complete',
       message: 'Post has been published.'
     },
-    goOnSuccess: 'back',
+    goOnSuccess: ({ navigation }) => navigation.goBack(),
     invalidateQueriesOnSuccess: { queryKey: ['posts'] }
   }
 };
@@ -133,7 +133,7 @@ const otherActionDefs = {
       title: 'Creation Complete',
       message: 'User and post have been created.'
     },
-    goOnSuccess: 'back',
+    goOnSuccess: ({ navigation }) => navigation.goBack(),
     invalidateQueriesOnSuccess: { queryKey: ['users', 'posts'] }
   },
 
@@ -148,7 +148,7 @@ const otherActionDefs = {
       title: 'Backup Complete',
       message: 'System backup has been completed.'
     },
-    goOnSuccess: 'back'
+    goOnSuccess: ({ navigation }) => navigation.goBack()
   },
 
   // Temporary/experimental action

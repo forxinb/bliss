@@ -31,7 +31,7 @@ const genericActionDefs = {
       title: 'Creation Complete',
       message: 'User has been created.'
     },
-    goOnSuccess: 'back',
+    goOnSuccess: ({ navigation }) => navigation.goBack(),
     invalidateQueriesOnSuccess: {
       queryKey: ['users']
     }
@@ -77,7 +77,7 @@ const genericActionDefs = {
       title: 'Creation Complete',
       message: 'User has been created.'
     },
-    goOnSuccess: 'back',
+    goOnSuccess: ({ navigation }) => navigation.goBack(),
     invalidateQueriesOnSuccess: {
       queryKey: ['users']
     },
@@ -135,7 +135,7 @@ const genericActionDefs = {
       title: 'Creation Complete',
       message: 'User has been created after confirmation.'
     },
-    goOnSuccess: 'back',
+    goOnSuccess: ({ navigation }) => navigation.goBack(),
     invalidateQueriesOnSuccess: {
       queryKey: ['users']
     }
