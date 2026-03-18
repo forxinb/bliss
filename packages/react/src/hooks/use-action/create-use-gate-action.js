@@ -24,8 +24,8 @@ const resolveCreateActionHookConfig = require('./resolve-create-action-hook-conf
  * @property {Object|Function} [confirmAction] - Confirmation dialog definition
  * @property {Object|Function} [alertSuccess] - Success alert definition
  * @property {Object|Function} [alertError] - Error alert definition
- * @property {('back'|Function)} [goOnSuccess] - Navigation after success
- * @property {('back'|Function)} [goOnError] - Navigation after error
+ * @property {Function} [goOnSuccess] - Callback after success: ({ data, navigation, ... }) => void
+ * @property {Function} [goOnError] - Callback after error: ({ error, navigation, ... }) => void
  * @property {Object|Function} [invalidateQueriesOnSuccess] - Query invalidation on success
  *
  * @typedef {Object.<string, ActionDef>} ActionDefs

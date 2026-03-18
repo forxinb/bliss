@@ -446,14 +446,9 @@ const useActionCore = (preprocessed, options, execution) => {
     }
 
     // Post-success handling
-    const goOnSuccessDefField = resolveDefField('goOnSuccess', makeCallbackParams({ data }));
-
-    if (goOnSuccessDefField) {
-      if (goOnSuccessDefField === 'back') {
-        mappedHooksResult.navigation.goBack();
-      } else if (_.isFunction(goOnSuccessDefField)) {
-        goOnSuccessDefField();
-      }
+    // goOnSuccess is treated as a pure side-effect callback (not handled by resolveDefField)
+    if (_.isFunction(actionDef.goOnSuccess)) {
+      actionDef.goOnSuccess(makeCallbackParams({ data }));
     }
 
     // Concurrency control scenario 1: normal completion
@@ -480,14 +475,9 @@ const useActionCore = (preprocessed, options, execution) => {
     }
 
     // Post-error handling
-    const goOnErrorDefField = resolveDefField('goOnError', makeCallbackParams({ error }));
-
-    if (goOnErrorDefField) {
-      if (goOnErrorDefField === 'back') {
-        mappedHooksResult.navigation.goBack();
-      } else if (_.isFunction(goOnErrorDefField)) {
-        goOnErrorDefField();
-      }
+    // goOnError is treated as a pure side-effect callback (not handled by resolveDefField)
+    if (_.isFunction(actionDef.goOnError)) {
+      actionDef.goOnError(makeCallbackParams({ error }));
     }
 
     // Concurrency control scenario 3: error in action
