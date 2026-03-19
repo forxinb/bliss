@@ -1,5 +1,12 @@
 # @godbliss/react
 
+## 0.0.3-alpha.4
+
+### Patch Changes
+
+- Refactor `goOnSuccess` and `goOnError` handlers in `useAction` to support only functional callbacks. Removed support for the `'back'` string to ensure a consistent and predictable API.
+  - @godbliss/core@0.0.3-alpha.4
+
 ## 0.0.3-alpha.3
 
 ### Patch Changes
